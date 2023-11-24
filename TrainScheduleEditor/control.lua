@@ -102,6 +102,8 @@ function getPlayerByIdx(idx)
 end
 
 function getPlayerUI(player)
+	ensurePlayer2UI()
+	
 	if global.player2ui[player.index] == nil then
 		buildGUI(player)
 	end
@@ -113,7 +115,7 @@ end
 
 
 function destroyGUIs()
-	game.print('destroyGUIs()')
+	ensurePlayer2UI()
 	
 	for _, player in pairs(game.players) do	
 		local idx = player.index
@@ -147,7 +149,15 @@ end
 
 
 
+function ensurePlayer2UI() {
+	if global.player2ui == nil then
+		global.player2ui = {}
+	end
+}
+
+
 function ensureGUIs()	
+	ensurePlayer2UI()
 	for _, player in pairs(game.players) do
 		if global.player2ui[player.index] == nil then
 			buildGUI(player)
@@ -158,6 +168,8 @@ end
 
 
 function buildGUI(player)
+	ensurePlayer2UI()
+
 	local playerIdx = player.index
 	if global.player2ui[playerIdx] ~= nil and global.player2ui[playerIdx].root ~= nil then
 		global.player2ui[playerIdx].root.destroy()
@@ -225,6 +237,10 @@ end
 function on_gui_click(e)
 	local player = game.get_player(e.player_index)
 	local ui = getPlayerUI(player)
+	if ui == nil bthen
+		return
+	end
+	
 	if ui.root == nil or not isElementChildOf(e.element, ui.root) then
 		return
 	end
@@ -259,6 +275,9 @@ function on_gui_opened(e)
 	local entity = e.entity
 	local player = getPlayerByIdx(e.player_index)
 	local ui = getPlayerUI(player)
+	if ui == nil bthen
+		return
+	end
 		
 	if entity ~= nil and entity ~= nil and entity.train ~= nil and entity.type == 'locomotive' then
 		ui.status = 'suggest-train'
@@ -276,6 +295,9 @@ function on_gui_closed(e)
 	local entity = e.entity
 	local player = getPlayerByIdx(e.player_index)
 	local ui = getPlayerUI(player)
+	if ui == nil bthen
+		return
+	end
 	
 	if entity ~= nil and entity ~= nil and entity.train ~= nil then
 		if ui.status == 'suggest-train' then
@@ -289,9 +311,7 @@ end
 
 function on_tick_kill_ui(e)
 	global.last_tick = e.tick
-	if global.player2ui == nil then
-		global.player2ui = {}
-	end
+	ensurePlayer2UI()
 	
 	for playerIdx, ui in pairs(global.player2ui) do
 		if ui.train ~= nil and ui.status == 'suggest-train' then
@@ -455,7 +475,6 @@ remote.add_interface("train-schedule-editor", {
 
 script.on_event({defines.events.on_init, defines.events.on_load},
 	function (e)
-		game.print('on_event: init/load')
 		ensureGUIs(e)
 	end
 )
